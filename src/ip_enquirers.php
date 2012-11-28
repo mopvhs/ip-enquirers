@@ -15,7 +15,7 @@ function getIp() {
         $onlineip = $_SERVER['REMOTE_ADDR'];
     }
     preg_match("/[\d\.]{7,15}/", $onlineip, $onlineipmatches);
-    $onlineip = $onlineipmatches[0] ? $onlineipmatches[0] : '127.0.0.1';
+    $onlineip = $onlineipmatches[0] ? $onlineipmatches[0] : '0.0.0.0';
     
     return $onlineip;
 }
@@ -208,6 +208,22 @@ function fromYoudaoAPI($ip) {
     }
     
 }
+/**
+ * 获取 IP  地理位置
+ * 淘宝IP接口
+ * @Return: array
+ */
+function fromTaobaoAPI($ip)
+{
+    $url="http://ip.taobao.com/service/getIpInfo.php?ip=".$ip;
+    $ip=json_decode(file_get_contents($url));   
+    if((string)$ip->code=='1'){
+       return false;
+    }
+    $data = (array)$ip->data;
+    return $data;   
+}
+
 // 通过QQwry.dat查询
 function fromQQWRY($ip) {
     // http://pecl.php.net/package/qqwry 通过这个扩展查询效率最高
@@ -221,7 +237,7 @@ function fromQQWRY($ip) {
             $arr = $qqwry->q($ip);
             $arr[0] = iconv('GB2312','UTF-8//ignore', $arr[0]);
             $arr[1] = iconv('GB2312','UTF-8//ignore', $arr[1]);
-            return $arr[0].'|'.$arr[1];
+            return $arr[0].' '.$arr[1];
         }
         else {
             return false;
@@ -233,7 +249,10 @@ function ipQuery($ip) {
     if (fromQQWRY($ip)!==false) {
         return fromQQWRY($ip);
     }
-    elseif (formSinaAPI($ip)!==false) {
+    else {
+        return convertIp($ip);
+    }
+    /* elseif (formSinaAPI($ip)!==false) {
         return formSinaAPI($ip);
     }
     elseif (fromYoudaoAPI($ip)!==false) {
@@ -241,5 +260,5 @@ function ipQuery($ip) {
     }
     else {
         return $ip;
-    }
+    }*/
 }
